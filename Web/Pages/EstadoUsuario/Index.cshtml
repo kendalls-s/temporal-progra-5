@@ -1,0 +1,85 @@
+@page
+@model CarnetDigitalWeb.Pages.EstadoUsuario.IndexModel
+@{
+    ViewData["Title"] = "Cambio de Estado";
+
+    var hay = Model.Resultado is not null;
+    var estado = Model.Resultado?.Estado ?? "";
+    var claseFranja = estado.Equals("Activo", StringComparison.OrdinalIgnoreCase) ? "activo"
+                    : estado.Equals("Inactivo", StringComparison.OrdinalIgnoreCase) ? "inactivo"
+                    : "";
+}
+
+<div class="card-panel">
+    <div class="panel-head">
+        <span class="panel-eyebrow">SRV12 - EstadoUsuario</span>
+    </div>
+
+    <div class="op-grid @(hay ? "" : "sola")">
+        <form method="post">
+            <div class="field">
+                <label for="UsuarioId">Identificador del usuario</label>
+                <input type="number" class="form-control mono" asp-for="UsuarioId" id="UsuarioId"
+                       placeholder="Ej: 1" min="1" required autofocus />
+            </div>
+
+            <div class="field">
+                <label for="Estado">Código de estado</label>
+                <div class="chip-row">
+                    <button type="button" class="chip" data-estado="Activo">Activo</button>
+                    <button type="button" class="chip" data-estado="Inactivo">Inactivo</button>
+                </div>
+                <input type="text" class="form-control mono" asp-for="Estado" id="Estado"
+                       placeholder="Ej: Activo, Inactivo" required />
+            </div>
+
+            <button type="submit" class="btn btn-cuc">
+                <i class="bi bi-check2-circle"></i> Cambiar estado
+            </button>
+        </form>
+
+        @if (hay)
+        {
+            <div class="op-result">
+                <div class="carnet">
+                    <div class="carnet-top"><span class="carnet-chip"></span></div>
+                    <div class="carnet-body">
+                        <dl class="carnet-dato" style="margin-top:0">
+                            <dt>Usuario</dt>
+                            <dd>@Model.Resultado!.NombreCompleto</dd>
+                        </dl>
+                        <dl class="carnet-dato">
+                            <dt>Id usuario</dt>
+                            <dd class="mono">@Model.Resultado.UsuarioId</dd>
+                        </dl>
+                    </div>
+                    <div class="carnet-franja @claseFranja">@Model.Resultado.Estado</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    (function () {
+        var campo = document.getElementById('Estado');
+        var chips = document.querySelectorAll('.chip[data-estado]');
+
+        function sincronizar() {
+            chips.forEach(function (c) {
+                c.classList.toggle('on', c.dataset.estado.toLowerCase() === campo.value.trim().toLowerCase());
+            });
+        }
+
+        chips.forEach(function (c) {
+            c.addEventListener('click', function () {
+                campo.value = c.dataset.estado;
+                sincronizar();
+                campo.focus();
+            });
+        });
+
+        campo.addEventListener('input', sincronizar);
+        sincronizar();
+    })();
+</script>

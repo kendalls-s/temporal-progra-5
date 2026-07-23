@@ -1,0 +1,107 @@
+@page
+@model CarnetDigitalWeb.Pages.Fotografia.IndexModel
+@{
+    ViewData["Title"] = "Fotografía";
+}
+
+<div class="card-panel">
+    <div class="panel-head">
+        <span class="panel-eyebrow">SRV13 - Fotografia</span>
+    </div>
+
+    <div class="op-grid">
+        <form method="post" enctype="multipart/form-data">
+            <div class="field">
+                <label for="UsuarioId">Identificador del usuario</label>
+                <input type="number" class="form-control mono" asp-for="UsuarioId" id="UsuarioId"
+                       placeholder="Ej: 1" min="1" required />
+            </div>
+
+            <div class="d-flex gap-2 mb-4">
+                <button type="submit" asp-page-handler="Obtener" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-download"></i> Obtener
+                </button>
+                <button type="submit" asp-page-handler="Eliminar" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('¿Realmente desea eliminar la fotografía del usuario indicado?');">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+
+            <div class="field">
+                <label for="Foto">Nueva fotografía (máx. 1 MB, formato 4:3)</label>
+                <input type="file" class="form-control" asp-for="Foto" id="Foto" accept="image/*" />
+                <ul class="checks" id="checks" hidden>
+                    <li id="chkPeso"></li>
+                    <li id="chkRatio"></li>
+                </ul>
+            </div>
+
+            <button type="submit" asp-page-handler="Actualizar" class="btn btn-cuc" id="btnGuardar">
+                <i class="bi bi-upload"></i> Actualizar fotografía
+            </button>
+        </form>
+
+        <div class="op-result">
+            <div class="carnet">
+                <div class="carnet-top"><span class="carnet-chip"></span></div>
+                <div class="carnet-body">
+                    <div class="carnet-foto" id="pozo">
+                        @if (!string.IsNullOrEmpty(Model.FotoBase64))
+                        {
+                            <img src="data:image/jpeg;base64,@Model.FotoBase64" alt="Fotografía" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var LIMITE = 1024 * 1024;   // 1 MB
+        var RATIO = 4 / 3;
+        var TOLERANCIA = 0.04;
+
+        var input = document.getElementById('Foto');
+        var checks = document.getElementById('checks');
+        var chkPeso = document.getElementById('chkPeso');
+        var chkRatio = document.getElementById('chkRatio');
+        var btn = document.getElementById('btnGuardar');
+        var pozo = document.getElementById('pozo');
+
+        function marcar(li, estado, texto) {
+            li.className = estado;
+            var icono = estado === 'ok' ? 'bi-check-circle-fill'
+                      : estado === 'mal' ? 'bi-x-circle-fill'
+                      : 'bi-exclamation-triangle-fill';
+            li.innerHTML = '<i class="bi ' + icono + '"></i><span>' + texto + '</span>';
+        }
+
+        function peso(bytes) {
+            return bytes < 1048576
+                ? Math.round(bytes / 1024) + ' KB'
+                : (bytes / 1048576).toFixed(2) + ' MB';
+        }
+
+        input.addEventListener('change', function () {
+            if (!input.files || !input.files[0]) return;
+            var archivo = input.files[0];
+            checks.hidden = false;
+
+            var pesoOk = archivo.size <= LIMITE;
+            marcar(chkPeso, pesoOk ? 'ok' : 'mal', peso(archivo.size));
+            btn.disabled = !pesoOk;
+
+            var url = URL.createObjectURL(archivo);
+            var img = new Image();
+            img.onload = function () {
+                var r = img.width / img.height;
+                var ratioOk = Math.abs(r - RATIO) <= TOLERANCIA;
+                marcar(chkRatio, ratioOk ? 'ok' : 'aviso', img.width + ' x ' + img.height);
+                pozo.innerHTML = '<img alt="Fotografía" src="' + url + '">';
+            };
+            img.src = url;
+        });
+    })();
+</script>

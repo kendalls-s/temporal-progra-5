@@ -1,0 +1,39 @@
+@page
+@model CarnetDigitalWeb.Pages.Qr.IndexModel
+@{
+    ViewData["Title"] = "Código QR";
+    var hayQr = !string.IsNullOrEmpty(Model.QrBase64);
+}
+
+<div class="card-panel">
+    <div class="panel-head">
+        <span class="panel-eyebrow">SRV14 - CarnetQR</span>
+    </div>
+
+    <div class="op-grid @(hayQr ? "" : "sola")">
+        <form method="post">
+            <div class="field">
+                <label for="Identificacion">Identificación del usuario</label>
+                <input type="text" class="form-control mono" asp-for="Identificacion" id="Identificacion"
+                       placeholder="Ej: 302450678" required autofocus />
+            </div>
+            <button type="submit" class="btn btn-cuc">
+                <i class="bi bi-qr-code-scan"></i> Generar QR
+            </button>
+        </form>
+
+        @if (hayQr)
+        {
+            <div class="op-result">
+                <div class="carnet">
+                    <div class="carnet-top"><span class="carnet-chip"></span></div>
+                    <div class="carnet-body">
+                        <div class="carnet-qr">
+                            <img src="data:image/png;base64,@Model.QrBase64" alt="Código QR" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

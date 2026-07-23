@@ -1,0 +1,73 @@
+@page "{id?}"
+@model CarnetDigitalWeb.Pages.Parametro.FormModel
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar parámetro" : "Nuevo parámetro";
+}
+
+<div class="card-panel" style="max-width:560px">
+    <div class="panel-head">
+        <span class="panel-eyebrow">SRV15 - Parametro</span>
+    </div>
+
+    <form method="post">
+        <input type="hidden" asp-for="EsEdicion" />
+
+        <div class="field">
+            <label for="Id">
+                Código
+                @if (!Model.EsEdicion)
+                {
+                    <span class="counter" id="contadorId">0/10</span>
+                }
+            </label>
+            @if (Model.EsEdicion)
+            {
+                <input type="text" class="form-control mono" value="@Model.Id" disabled />
+                <input type="hidden" asp-for="Id" />
+            }
+            else
+            {
+                <input type="text" class="form-control mono" asp-for="Id" id="Id"
+                       maxlength="10" pattern="[A-Z]{1,10}" required autofocus autocomplete="off" />
+            }
+        </div>
+
+        <div class="field">
+            <label for="Valor">
+                Valor (máx. 500 caracteres)
+                <span class="counter" id="contadorValor">0/500</span>
+            </label>
+            <textarea class="form-control" asp-for="Valor" id="Valor" rows="3" maxlength="500" required></textarea>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-cuc">Guardar</button>
+            <a class="btn btn-outline-secondary" asp-page="Index">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        function contar(campo, salida, maximo) {
+            if (!campo || !salida) return;
+            function actualizar() {
+                salida.textContent = campo.value.length + '/' + maximo;
+                salida.classList.toggle('over', campo.value.length >= maximo);
+            }
+            campo.addEventListener('input', actualizar);
+            actualizar();
+        }
+
+        var id = document.getElementById('Id');
+        if (id) {
+            id.addEventListener('input', function () {
+                var limpio = id.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10);
+                if (limpio !== id.value) id.value = limpio;
+            });
+            contar(id, document.getElementById('contadorId'), 10);
+        }
+
+        contar(document.getElementById('Valor'), document.getElementById('contadorValor'), 500);
+    })();
+</script>

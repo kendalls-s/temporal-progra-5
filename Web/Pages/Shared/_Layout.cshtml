@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " - Carnet Digital" : "Carnet Digital CUC")</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+            :root {
+                --azul: #1b2a4a;
+                --azul-claro: #24365f;
+            }
+
+            body {
+                background: #f4f6f9;
+            }
+
+            .sidebar {
+                width: 230px;
+                min-height: 100vh;
+                background: var(--azul);
+                position: fixed;
+                left: 0;
+                top: 0;
+                overflow-y: auto;
+            }
+
+                .sidebar .brand {
+                    color: #fff;
+                    padding: 18px 16px;
+                    font-weight: 600;
+                    border-bottom: 1px solid rgba(255,255,255,.1);
+                }
+
+                .sidebar a {
+                    display: block;
+                    color: #c7d0e0;
+                    padding: 12px 18px;
+                    text-decoration: none;
+                    font-size: .95rem;
+                    border-left: 3px solid transparent;
+                    transition: all 0.2s;
+                }
+
+                    .sidebar a:hover {
+                        background: var(--azul-claro);
+                        color: #fff;
+                        border-left-color: #ffd700;
+                    }
+
+                    .sidebar a.active {
+                        background: var(--azul-claro);
+                        color: #ffd700;
+                        border-left-color: #ffd700;
+                    }
+
+                    .sidebar a i {
+                        margin-right: 10px;
+                        width: 20px;
+                        text-align: center;
+                    }
+
+                .sidebar .logout-link {
+                    color: #e74c3c;
+                    border-top: 1px solid rgba(255,255,255,.1);
+                    margin-top: 10px;
+                    padding-top: 15px;
+                }
+
+                    .sidebar .logout-link:hover {
+                        background: rgba(231, 76, 60, 0.15);
+                        color: #ff6b6b;
+                        border-left-color: #e74c3c;
+                    }
+
+                .sidebar .divider {
+                    height: 1px;
+                    background: rgba(255,255,255,.1);
+                    margin: 8px 16px;
+                }
+
+                .sidebar .section-title {
+                    color: #8899bb;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    padding: 12px 18px 4px;
+                    letter-spacing: 1px;
+                }
+
+            .content {
+                margin-left: 230px;
+            }
+
+            .topbar {
+                background: #fff;
+                border-bottom: 1px solid #e3e6ec;
+                padding: 10px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .main {
+                padding: 24px;
+                min-height: 80vh;
+            }
+
+            .menu-toggle {
+                display: none;
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: var(--azul);
+                cursor: pointer;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .user-avatar {
+                font-size: 28px;
+                color: var(--azul);
+            }
+
+            .user-name {
+                font-weight: 500;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .user-role {
+                font-size: 12px;
+                color: #6c757d;
+            }
+
+            @@media (max-width: 768px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.3s;
+                }
+
+                    .sidebar.open {
+                        transform: translateX(0);
+                    }
+
+                .content {
+                    margin-left: 0;
+                }
+
+                .menu-toggle {
+                    display: block;
+                }
+            }
+
+            /* ==========================================================
+               SISTEMA DE PANTALLAS DE OPERACIÓN
+               Paleta celeste tomada del diagrama de arquitectura del
+               documento (Ilustración 1): nubes y dispositivo móvil.
+               ========================================================== */
+            :root {
+                --celeste: #29abe2;
+                --celeste-oscuro: #1b87b8;
+                --celeste-claro: #d9edf9;
+                --celeste-panel: #eff7fc;
+                --peligro: #dc3545;
+                --tinta: #1f2733;
+                --gris: #6b7684;
+                --linea: #e3e6ec;
+                --ok: #1e8e5a;
+                --alerta: #c2410c;
+                --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+            }
+
+            .card-panel {
+                background: #fff;
+                border: 1px solid var(--linea);
+                border-radius: 10px;
+                padding: 22px;
+                box-shadow: 0 1px 2px rgba(27,42,74,.04), 0 8px 24px rgba(27,42,74,.05);
+            }
+
+            /* Encabezado de panel: servicio + título + ayuda */
+            .panel-head {
+                border-bottom: 1px solid var(--linea);
+                padding-bottom: 14px;
+                margin-bottom: 18px;
+            }
+
+            .panel-eyebrow {
+                font-family: var(--mono);
+                font-size: 11px;
+                letter-spacing: .09em;
+                text-transform: uppercase;
+                color: var(--gris);
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+            }
+
+                .panel-eyebrow::before {
+                    content: "";
+                    width: 3px;
+                    height: 12px;
+                    background: var(--celeste);
+                    border-radius: 2px;
+                }
+
+            /* Grilla: controles a la izquierda, resultado a la derecha */
+            .op-grid {
+                display: grid;
+                grid-template-columns: minmax(0,1fr) 340px;
+                gap: 26px;
+                align-items: start;
+            }
+
+            .op-result {
+                border-left: 1px solid var(--linea);
+                padding-left: 26px;
+                min-height: 100%;
+            }
+
+            /* Sin resultado todavía: el formulario ocupa el ancho completo */
+            .op-grid.sola {
+                grid-template-columns: minmax(0,1fr);
+            }
+
+            @@media (max-width: 900px) {
+                .op-grid {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+
+                .op-result {
+                    border-left: 0;
+                    border-top: 1px solid var(--linea);
+                    padding-left: 0;
+                    padding-top: 20px;
+                }
+            }
+
+            /* Campos */
+            .field {
+                margin-bottom: 16px;
+            }
+
+                .field > label {
+                    display: block;
+                    font-size: .82rem;
+                    font-weight: 600;
+                    color: var(--tinta);
+                    margin-bottom: 5px;
+                }
+
+            .form-control.mono,
+            .mono {
+                font-family: var(--mono);
+                letter-spacing: .03em;
+            }
+
+            .form-control:focus {
+                border-color: var(--celeste);
+                box-shadow: 0 0 0 3px rgba(41,171,226,.2);
+            }
+
+            .counter {
+                font-family: var(--mono);
+                font-size: .72rem;
+                color: var(--gris);
+                float: right;
+                font-weight: 400;
+            }
+
+                .counter.over {
+                    color: var(--peligro);
+                }
+
+            /* Botones de acción */
+            .btn-cuc {
+                background: var(--celeste);
+                border: 1px solid var(--celeste);
+                color: #fff;
+                font-weight: 500;
+            }
+
+                .btn-cuc:hover, .btn-cuc:focus {
+                    background: var(--celeste-oscuro);
+                    border-color: var(--celeste-oscuro);
+                    color: #fff;
+                }
+
+                .btn-cuc:disabled {
+                    background: #c8ccd4;
+                    border-color: #c8ccd4;
+                }
+
+            /* Selector rápido de estados (SRV12) */
+            .chip-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 9px;
+            }
+
+            .chip {
+                border: 1px solid var(--linea);
+                background: #fff;
+                border-radius: 999px;
+                padding: 6px 15px;
+                font-size: .84rem;
+                color: var(--tinta);
+                cursor: pointer;
+                transition: all .15s;
+                font-family: var(--mono);
+            }
+
+                .chip:hover {
+                    border-color: var(--celeste);
+                }
+
+                .chip.on {
+                    background: var(--celeste);
+                    border-color: var(--celeste);
+                    color: #fff;
+                }
+
+            /* ===== EL CARNET: elemento distintivo de estas pantallas ===== */
+            .carnet {
+                width: 100%;
+                max-width: 320px;
+                background: #fff;
+                border: 1px solid var(--linea);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 10px 26px rgba(41,171,226,.22);
+            }
+
+            .carnet-top {
+                background: linear-gradient(135deg, var(--celeste), var(--celeste-oscuro));
+                color: #fff;
+                padding: 11px 14px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .carnet-chip {
+                width: 27px;
+                height: 20px;
+                border-radius: 4px;
+                background: linear-gradient(135deg, #fff, var(--celeste-claro));
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+            }
+
+            .carnet-body {
+                padding: 16px 14px;
+            }
+
+            /* Pozo de fotografía en 4:3, según SRV13 */
+            .carnet-foto {
+                aspect-ratio: 4 / 3;
+                width: 100%;
+                background: var(--celeste-panel) repeating-linear-gradient(45deg, transparent 0 9px, rgba(41,171,226,.07) 9px 18px);
+                border: 1px solid var(--linea);
+                border-radius: 7px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+                .carnet-foto img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
+                .carnet-foto .vacio {
+                    text-align: center;
+                    color: #9aa4b2;
+                    font-size: .78rem;
+                    padding: 12px;
+                }
+
+                    .carnet-foto .vacio i {
+                        font-size: 1.7rem;
+                        display: block;
+                        margin-bottom: 5px;
+                    }
+
+            .carnet-qr {
+                background: #fff;
+                border: 1px solid var(--linea);
+                border-radius: 7px;
+                padding: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .carnet-qr img {
+                    width: 100%;
+                    max-width: 220px;
+                    display: block;
+                    image-rendering: pixelated;
+                }
+
+            .carnet-dato {
+                margin-top: 12px;
+            }
+
+                .carnet-dato dt {
+                    font-size: .66rem;
+                    letter-spacing: .1em;
+                    text-transform: uppercase;
+                    color: var(--gris);
+                    font-weight: 600;
+                }
+
+                .carnet-dato dd {
+                    margin: 2px 0 0;
+                    font-size: .95rem;
+                    color: var(--tinta);
+                    font-weight: 500;
+                    word-break: break-word;
+                }
+
+            /* Franja de estado al pie del carnet */
+            .carnet-franja {
+                padding: 9px 14px;
+                font-size: .78rem;
+                font-weight: 600;
+                letter-spacing: .06em;
+                text-transform: uppercase;
+                font-family: var(--mono);
+                color: #fff;
+                background: var(--gris);
+                display: flex;
+                align-items: center;
+                gap: 7px;
+            }
+
+                .carnet-franja.activo {
+                    background: var(--ok);
+                }
+
+                .carnet-franja.inactivo {
+                    background: var(--peligro);
+                }
+
+            /* Lista de verificación de requisitos (SRV13) */
+            .checks {
+                list-style: none;
+                padding: 0;
+                margin: 12px 0 0;
+                font-size: .81rem;
+            }
+
+                .checks li {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 4px 0;
+                    color: var(--gris);
+                }
+
+                    .checks li i {
+                        font-size: .95rem;
+                    }
+
+                    .checks li.ok {
+                        color: var(--ok);
+                    }
+
+                    .checks li.mal {
+                        color: var(--peligro);
+                    }
+
+                    .checks li.aviso {
+                        color: var(--alerta);
+                    }
+
+            /* Zona de carga de archivo */
+
+            /* Tabla de parámetros */
+            .tabla-cuc {
+                margin: 0;
+            }
+
+                .tabla-cuc thead th {
+                    font-size: .7rem;
+                    letter-spacing: .09em;
+                    text-transform: uppercase;
+                    color: var(--gris);
+                    font-weight: 600;
+                    border-bottom: 1px solid var(--linea);
+                    background: #fafbfc;
+                }
+
+                .tabla-cuc td {
+                    vertical-align: middle;
+                    border-bottom: 1px solid #f0f2f5;
+                }
+
+            .clave {
+                font-family: var(--mono);
+                font-size: .82rem;
+                font-weight: 600;
+                color: var(--celeste-oscuro);
+                background: var(--celeste-panel);
+                border: 1px solid var(--celeste-claro);
+                border-radius: 5px;
+                padding: 3px 9px;
+                display: inline-block;
+                white-space: nowrap;
+            }
+
+            .valor-celda {
+                color: var(--tinta);
+                max-width: 620px;
+                word-break: break-word;
+            }
+
+            .toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+
+            /* Estado vacío */
+
+            :focus-visible {
+                outline: 2px solid var(--celeste);
+                outline-offset: 2px;
+            }
+
+            @@media (prefers-reduced-motion: reduce) {
+                * {
+                    transition: none !important;
+                    animation: none !important;
+                }
+            }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="brand"><i class="bi bi-person-badge"></i> Carnet Digital</div>
+        <nav>
+            <!-- ======================================== -->
+            <!-- SECCIÓN: INICIO                          -->
+            <!-- ======================================== -->
+            <a href="/index"><i class="bi bi-house-door"></i> Inicio</a>
+
+            <!-- ======================================== -->
+            <!-- SECCIÓN: MÓDULOS                         -->
+            <!-- ======================================== -->
+            <div class="divider"></div>
+            <div class="section-title">Módulos</div>
+
+            <a href="#" onclick="abrirMicroservicio('https://tiusr22pl.cuc-carrera-ti.ac.cr/Usuarios'); return false;">
+                <i class="bi bi-people"></i> Usuarios
+            </a>
+            <a href="/TiposUsuario"><i class="bi bi-tags"></i> Tipos de Usuario</a>
+            <a href="/TiposIdentificacion"><i class="bi bi-id-card"></i> Tipos de Identificación</a>
+            <a href="#" onclick="abrirMicroservicio('https://tiusr22pl.cuc-carrera-ti.ac.cr/Carreras'); return false;">
+                <i class="bi bi-mortarboard"></i> Carreras
+            </a>
+            <a href="#" onclick="abrirMicroservicio('https://tiusr22pl.cuc-carrera-ti.ac.cr/Areas'); return false;">
+                <i class="bi bi-building"></i> Áreas
+            </a>
+            <a href="#" onclick="abrirMicroservicio('https://tiusr22pl.cuc-carrera-ti.ac.cr/Instituciones'); return false;">
+                <i class="bi bi-university"></i> Instituciones
+            </a>
+            <a href="/Fotografia"><i class="bi bi-image"></i> Fotografía</a>
+            <a href="/Qr"><i class="bi bi-qr-code"></i> Código QR</a>
+            <a href="/EstadoUsuario"><i class="bi bi-toggle2-on"></i> Cambio de Estado</a>
+            <a href="/Parametro"><i class="bi bi-sliders"></i> Parámetros</a>
+
+            <!-- ======================================== -->
+            <!-- SECCIÓN: CERRAR SESIÓN                   -->
+            <!-- ======================================== -->
+            <div class="divider"></div>
+            <a href="#" onclick="cerrarSesion(); return false;" class="logout-link">
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-2">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h5 class="mb-0">@ViewData["Title"]</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-info">
+                    <div class="user-avatar"><i class="bi bi-person-circle"></i></div>
+                    <span class="user-name" id="userName">Usuario</span>
+                    <span class="user-role" id="userRole"></span>
+                </div>
+                <span class="badge bg-success" id="tokenBadge">✅ Con sesión</span>
+            </div>
+        </div>
+
+        <div class="main">
+            @if (TempData["Mensaje"] is string _mensaje && !string.IsNullOrEmpty(_mensaje))
+            {
+                <div class="alert alert-@(TempData["MensajeTipo"] ?? "info") alert-dismissible fade show" role="alert">
+                    @_mensaje
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        var token = localStorage.getItem('accessToken');
+        if (!token) {
+        window.location.href = '/Login';
+        return;
+        }
+
+        var nombre = localStorage.getItem('nombreCompleto') || 'Usuario';
+        var tipo = localStorage.getItem('usuarioTipo') || '';
+        document.getElementById('userName').textContent = nombre;
+        document.getElementById('userRole').textContent = tipo ? '(' + tipo + ')' : '';
+
+        // ✅ Obtener configuración de servicios desde appsettings.json
+        fetch('/api/config')
+        .then(response => response.json())
+        .then(config => {
+        window.serviceConfig = config;
+        })
+        .catch(() => {
+        // Fallback a valores por defecto
+        window.serviceConfig = {
+        'UsuariosSRV4': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/Usuarios',
+        'TiposUsuarioSRV5': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/TipoUsuario',
+        'TipoIdentificacionSRV6': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/TipoIdentificacion',
+        'SRV3_Carreras': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/Carreras',
+        'SRV4_Areas': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/Areas',
+        'SRV2_Instituciones': 'https://tiusr22pl.cuc-carrera-ti.ac.cr/Instituciones'
+        };
+        });
+        });
+
+        function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function cerrarSesion() {
+        if (confirm('¿Está seguro de cerrar sesión?')) {
+        localStorage.clear();
+        window.location.href = '/Login';
+        }
+        }
+
+        function abrirMicroservicio(url) {
+        var token = localStorage.getItem('accessToken');
+        if (!token) {
+        window.location.href = '/Login';
+        return;
+        }
+        // Abre la página sin token en URL (el microservicio obtendrá el token de localStorage)
+        window.location.href = url;
+        }
+
+        // Cerrar sidebar en móvil
+        document.addEventListener('click', function(event) {
+        var sidebar = document.getElementById('sidebar');
+        var toggleBtn = document.querySelector('.menu-toggle');
+        if (window.innerWidth <= 768) {
+        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+        sidebar.classList.remove('open');
+        }
+        }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
